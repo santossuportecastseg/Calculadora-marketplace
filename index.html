@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14307a">
+<title>CASTSEG · Calculadora de Precificação</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#14307a;--navy2:#0c1f55;--bg:#f3f5fa;--card:#fff;--ink:#16203a;--mut:#5d6885;--line:#dde2ee;--ok:#0d8a4f;--bad:#c62828;--ml:#f5c400;--sp:#ee4d2d;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-t=light]){--bg:#0b1226;--card:#131c38;--ink:#e8ecf7;--mut:#93a0c4;--line:#243057;--navy:#5b82f0;--navy2:#0b1226;--ok:#3ddc97;--bad:#ff7b7b;color-scheme:dark}}
+*{box-sizing:border-box}
+html{height:100%;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:env(safe-area-inset-bottom,0px)}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:3px solid #14307a;display:flex;align-items:center;gap:12px;padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top,0px))}
+header img{height:40px;width:auto;display:block}
+header h1{margin:0;font:700 17px/1.1 'Barlow Semi Condensed',Barlow,sans-serif;color:#14307a;flex:1}
+#burger{width:44px;height:44px;border:0;background:#14307a;border-radius:10px;display:grid;place-content:center;gap:5px;cursor:pointer}
+#burger span{display:block;width:22px;height:2.5px;background:#fff;border-radius:2px;transition:.2s}
+#burger.open span:nth-child(1){transform:translateY(7.5px) rotate(45deg)}
+#burger.open span:nth-child(2){opacity:0}
+#burger.open span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg)}
+nav{position:fixed;inset:0 0 0 auto;width:min(290px,84vw);background:var(--navy2);color:#fff;transform:translateX(100%);transition:transform .25s;z-index:30;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 20px;display:flex;flex-direction:column;gap:6px}
+nav.open{transform:none}
+nav button{background:none;border:0;color:#fff;text-align:left;font:600 18px Barlow,sans-serif;padding:14px 12px;border-radius:10px;cursor:pointer}
+nav button.on{background:rgba(255,255,255,.14)}
+nav small{margin-top:auto;opacity:.7}
+#veil{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.25s;z-index:25}
+#veil.open{opacity:1;pointer-events:auto}
+main{max-width:980px;margin:0 auto;padding:16px 14px 40px}
+section{display:none}section.on{display:block}
+h2{font:700 24px 'Barlow Semi Condensed',Barlow,sans-serif;margin:6px 0 4px}
+.sub{color:var(--mut);margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:4px}
+input,select{width:100%;font:500 16px Barlow,sans-serif;padding:11px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);min-height:44px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--navy);outline-offset:1px}
+.btn{background:#14307a;color:#fff;border:0;border-radius:10px;padding:12px 16px;font:600 16px Barlow,sans-serif;cursor:pointer;min-height:44px}
+.btn.alt{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}
+.res{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.ch{border-radius:14px;border:1px solid var(--line);background:var(--card);overflow:hidden}
+.ch h3{margin:0;padding:10px 14px;font:700 17px 'Barlow Semi Condensed',sans-serif;color:#111}
+.ch.ml h3{background:var(--ml)}.ch.pr h3{background:#ffd84d}.ch.sp h3{background:var(--sp);color:#fff}
+.big{padding:12px 14px 4px}
+.big b{font:700 34px/1 'Barlow Semi Condensed',sans-serif;display:block}
+.big span{color:var(--mut);font-size:13px}
+.ln{display:flex;justify-content:space-between;gap:8px;padding:6px 14px;border-top:1px solid var(--line);font-size:14.5px}
+.ln span:first-child{color:var(--mut)}
+.tot{font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:6px 4px;text-align:left;font-size:14px}
+th{color:var(--mut);font-weight:600}
+td input{padding:8px 6px;min-height:40px}
+.tw{overflow-x:auto}
+.err{color:var(--bad);font-weight:600;padding:10px 14px}
+.note{font-size:13px;color:var(--mut)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+<img src="data:image/jpeg;base64,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" alt="CASTSEG Security Store">
+<h1>Calculadora de Precificação</h1>
+<button id="burger" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+<div id="veil"></div>
+<nav id="nav" aria-label="Menu principal">
+<button data-go="calc" class="on">Calculadora</button>
+<button data-go="kit">Montar kit</button>
+<button data-go="taxas">Taxas e custos</button>
+<button data-go="tabelas">Tabelas de referência</button>
+<button data-go="ajuda">Como funciona</button>
+<small>CASTSEG Security Store</small>
+</nav>
+
+<main>
+<section id="calc" class="on">
+<h2>Calculadora</h2>
+<p class="sub">Informe o custo e veja o preço ideal no Mercado Livre e na Shopee.</p>
+<div class="card">
+<div class="grid">
+<div style="grid-column:1/-1"><label for="nome">Produto ou kit</label><input id="nome" placeholder="Ex.: Kit 4 câmeras Hikvision + DVR 4 canais"></div>
+<div><label for="custo">Custo do produto (R$)</label><input id="custo" type="number" inputmode="decimal" step="0.01" min="0"></div>
+<div><label for="marca">Marca</label><select id="marca"><option>Hikvision</option><option>JFL</option><option>AGL</option><option>Control ID</option><option>NICE</option><option>MCM</option><option>Tecpower</option><option>Outra</option></select></div>
+<div><label for="margem">Margem líquida desejada (%)</label><input id="margem" type="number" inputmode="decimal" step="0.5"></div>
+<div><label for="fml">Frete Mercado Livre (R$)</label><input id="fml" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Usa o padrão"></div>
+<div><label for="fsp">Frete Shopee (R$)</label><input id="fsp" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Usa o padrão"></div>
+<div><label for="manual">Preço manual (opcional)</label><input id="manual" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Simular um preço"></div>
+</div>
+<div class="row" style="margin-top:12px"><button class="btn" id="go">Calcular</button><button class="btn alt" id="limpar">Limpar</button></div>
+</div>
+<div class="res" id="res"></div>
+<p class="note">Taxas, imposto, tráfego pago, frete e embalagem ficam em <b>Taxas e custos</b>. Confira os valores nas tabelas atuais de cada marketplace.</p>
+</section>
+
+<section id="kit">
+<h2>Montar kit</h2>
+<p class="sub">Some os itens do kit (câmeras, DVR, fonte, cabos, facial) e envie o custo para a calculadora.</p>
+<div class="card">
+<div class="tw"><table><thead><tr><th>Item</th><th style="width:64px">Qtd</th><th style="width:110px">Custo un. (R$)</th><th style="width:44px"></th></tr></thead><tbody id="kitrows"></tbody></table></div>
+<div class="row" style="margin-top:10px"><button class="btn alt" id="addrow">Adicionar item</button><button class="btn alt" id="exemplo">Carregar exemplo</button></div>
+<p style="font:700 22px 'Barlow Semi Condensed',sans-serif;margin:14px 0 8px">Custo do kit: <span id="kittot">R$ 0,00</span></p>
+<label for="kitnome">Nome do kit</label><input id="kitnome" placeholder="Ex.: Kit 4 câmeras + DVR">
+<div class="row" style="margin-top:10px"><button class="btn" id="usar">Usar na calculadora</button></div>
+</div>
+</section>
+
+<section id="taxas">
+<h2>Taxas e custos</h2>
+<p class="sub">Valores editáveis. Ficam salvos neste aparelho.</p>
+<div class="card"><h3 style="margin:0 0 10px">Mercado Livre</h3>
+<div class="grid">
+<div><label for="mlc">Comissão Clássico (%)</label><input id="mlc" type="number" inputmode="decimal" step="0.1"></div>
+<div><label for="mlp">Comissão Premium (%)</label><input id="mlp" type="number" inputmode="decimal" step="0.1"></div>
+<div><label for="mlf">Frete pago por você (R$)</label><input id="mlf" type="number" inputmode="decimal" step="0.01"></div>
+<div><label for="mla">Tráfego pago / Product Ads (% do preço)</label><input id="mla" type="number" inputmode="decimal" step="0.1"></div>
+</div>
+<p class="note">Comissão do Mercado Livre: 10% a 14% no Clássico e 15% a 19% no Premium, conforme a categoria. Consulte a sua categoria no Simulador de Custos do Mercado Livre. Produtos a partir de R$ 79 não pagam custo fixo. Abaixo de R$ 79 existe um custo variável por peso e dimensão, que esta calculadora não considera.</p></div>
+<div class="card"><h3 style="margin:0 0 10px">Shopee</h3>
+<div class="grid">
+<div><label for="spf">Frete pago por você (R$)</label><input id="spf" type="number" inputmode="decimal" step="0.01"></div>
+<div><label for="spa">Shopee Ads (% do preço)</label><input id="spa" type="number" inputmode="decimal" step="0.1"></div>
+</div><p class="note">Comissão e taxa fixa por faixa de preço (tabela de março de 2026, CNPJ): até R$ 7,99 paga 50% do preço; R$ 8 a 79,99 paga 20% + R$ 4; R$ 80 a 99,99 paga 14% + R$ 16; R$ 100 a 199,99 paga 14% + R$ 20; a partir de R$ 200 paga 14% + R$ 26. O frete grátis é obrigatório.</p></div>
+<div class="card"><h3 style="margin:0 0 10px">Custos da loja</h3>
+<div class="grid">
+<div><label for="imp">Imposto sobre a venda (%)</label><input id="imp" type="number" inputmode="decimal" step="0.1"></div>
+<div><label for="emb">Embalagem por pedido (R$)</label><input id="emb" type="number" inputmode="decimal" step="0.01"></div>
+<div><label for="out">Outras despesas (% do preço)</label><input id="out" type="number" inputmode="decimal" step="0.1"></div>
+</div>
+<div class="row" style="margin-top:12px"><button class="btn" id="salvar">Salvar taxas</button><button class="btn alt" id="reset">Restaurar padrão</button></div>
+<p class="note" id="msg" role="status"></p></div>
+</section>
+
+<section id="tabelas">
+<h2>Tabelas de referência</h2>
+<p class="sub">Regras vigentes desde março de 2026. Confirme sempre no painel de cada marketplace.</p>
+<div class="card"><h3 style="margin:0 0 8px">Shopee: comissão e taxa fixa por item</h3>
+<div class="tw"><table><thead><tr><th>Preço do item</th><th>Comissão</th><th>Taxa fixa</th></tr></thead><tbody>
+<tr><td>Até R$ 7,99</td><td>50% do preço</td><td>R$ 0,00</td></tr>
+<tr><td>R$ 8,00 a 79,99</td><td>20%</td><td>R$ 4,00</td></tr>
+<tr><td>R$ 80,00 a 99,99</td><td>14%</td><td>R$ 16,00</td></tr>
+<tr><td>R$ 100,00 a 199,99</td><td>14%</td><td>R$ 20,00</td></tr>
+<tr><td>A partir de R$ 200,00</td><td>14%</td><td>R$ 26,00</td></tr></tbody></table></div>
+<p class="note">Vale para CNPJ e para CPF com menos de 450 pedidos em 90 dias. CPF acima disso paga mais R$ 3 por item. Não há teto de comissão. O frete grátis é obrigatório e a Shopee subsidia parte dele. Fonte oficial: Centro de Educação do Vendedor Shopee (seller.shopee.com.br/edu).</p></div>
+<div class="card"><h3 style="margin:0 0 8px">Mercado Livre</h3>
+<div class="tw"><table><thead><tr><th>Item</th><th>Regra</th></tr></thead><tbody>
+<tr><td>Comissão Clássico</td><td>10% a 14%, conforme a categoria</td></tr>
+<tr><td>Comissão Premium</td><td>15% a 19%, conforme a categoria (inclui parcelamento sem juros)</td></tr>
+<tr><td>Preço a partir de R$ 79</td><td>Só comissão. Frete grátis obrigatório, e você paga a parte que o Mercado Livre não subsidia</td></tr>
+<tr><td>Preço abaixo de R$ 79</td><td>Comissão mais custo operacional variável por peso, dimensão e faixa de preço (substituiu a taxa fixa de R$ 6,25 a 6,75)</td></tr>
+<tr><td>Subsídio no frete grátis</td><td>Depende da reputação. Chega a 70% para reputação verde escura</td></tr></tbody></table></div>
+<p class="note">O percentual exato da sua categoria e o custo de frete por peso e faixa de preço ficam no Simulador de Custos do painel do vendedor. Coloque o percentual em Taxas e custos e o frete do produto no campo de frete da calculadora.</p></div>
+</section>
+
+<section id="ajuda">
+<h2>Como funciona</h2>
+<div class="card">
+<p><b>Preço sugerido</b> = (custo + frete + embalagem + taxa fixa) ÷ (1 − comissão − imposto − tráfego pago − outras despesas − margem).</p>
+<p>A margem é o lucro líquido em porcentagem do preço de venda. Com o preço manual preenchido, a calculadora mostra o lucro e a margem reais naquele preço.</p>
+<p>O tráfego pago entra como porcentagem do preço (ACOS). Use o ACOS médio das suas campanhas.</p>
+<p><b>IPI:</b> a loja revendedora não recolhe IPI na venda. Ele já está no valor da nota de compra do fornecedor, então use no campo de custo o valor total da nota. Se você compra com ICMS-ST ou vende para outro estado (DIFAL), some esse custo no campo de imposto ou em outras despesas. Confirme com seu contador.</p>
+<p class="note">As taxas padrão são valores de referência. Comissões variam por categoria e mudam com o tempo: confirme nas tabelas oficiais do Mercado Livre e da Shopee e ajuste em Taxas e custos.</p>
+</div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const DEF={mlc:11.5,mlp:16.5,mlf:0,mla:8,spc:20,spx:4,spf:0,spa:8,imp:4,emb:3,out:0,margem:15};
+let cfg={...DEF};
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('castseg_cfg')||'{}'))}catch(e){}
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pc=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';
+const n=id=>parseFloat($(id).value)||0;
+
+function fill(){for(const k in DEF)if($(k))$(k).value=cfg[k]}
+fill();
+
+// menu
+const nav=$('nav'),burger=$('burger'),veil=$('veil');
+function menu(o){nav.classList.toggle('open',o);veil.classList.toggle('open',o);burger.classList.toggle('open',o);burger.setAttribute('aria-expanded',o)}
+burger.onclick=()=>menu(!nav.classList.contains('open'));
+veil.onclick=()=>menu(false);
+nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+ nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.go));
+ menu(false);window.scrollTo(0,0)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')menu(false)});
+
+// cálculo
+const ML_TIERS=[{min:0,max:Infinity,fix:0,extra:0}];
+const SP_TIERS=[{min:0,max:8,fix:0,extra:.5},{min:8,max:80,fix:4,extra:.2},{min:80,max:100,fix:16,extra:.14},{min:100,max:200,fix:20,extra:.14},{min:200,max:Infinity,fix:26,extra:.14}];
+function solve(base,pct,tiers){
+ for(const t of tiers){const d=1-pct-t.extra;if(d<=0)continue;const p=(base+t.fix)/d;if(p>=t.min&&p<t.max)return p}
+ const t=tiers[tiers.length-1],d=1-pct-t.extra;return d>0?(base+t.fix)/d:NaN}
+function feeOf(p,tiers){const t=tiers.find(t=>p>=t.min&&p<t.max)||tiers[tiers.length-1];return t.fix+p*t.extra}
+
+function channel(o){
+ const base=o.custo+o.frete+cfg.emb;
+ const pct=(o.com+cfg.imp+o.ads+cfg.out)/100;
+ const marg=n('margem')/100;
+ const manual=n('manual');
+ const price=manual>0?manual:solve(base,pct+marg,o.tiers);
+ if(!isFinite(price)||price<=0)return `<div class="ch ${o.cls}"><h3>${o.nome}</h3><div class="err">Os percentuais somam 100% ou mais. Reduza a margem, o tráfego pago ou as taxas.</div></div>`;
+ const tt=o.tiers.find(t=>price>=t.min&&price<t.max)||o.tiers[o.tiers.length-1];const cp=o.com+tt.extra*100;const com=price*cp/100,imp=price*cfg.imp/100,ads=price*o.ads/100,out=price*cfg.out/100,fix=tt.fix;
+ const lucro=price-o.custo-o.frete-cfg.emb-com-imp-ads-out-fix;
+ const mr=lucro/price*100;
+ const L=(a,b,c='')=>`<div class="ln"><span>${a}</span><span class="${c}">${b}</span></div>`;
+ return `<div class="ch ${o.cls}"><h3>${o.nome}</h3>
+ <div class="big"><b>${brl(price)}</b><span>${manual>0?'Preço informado':'Preço sugerido'}</span></div>
+ ${L('Custo do produto',brl(o.custo))}
+ ${L('Comissão ('+pc(cp)+')',brl(com))}
+ ${L('Taxa fixa',brl(fix))}
+ ${L('Frete e embalagem',brl(o.frete+cfg.emb))}
+ ${L('Imposto ('+pc(cfg.imp)+')',brl(imp))}
+ ${L('Tráfego pago ('+pc(o.ads)+')',brl(ads))}
+ ${cfg.out?L('Outras despesas',brl(out)):''}
+ ${L('Lucro líquido',brl(lucro),'tot '+(lucro>=0?'ok':'bad'))}
+ ${L('Margem real',pc(mr),'tot '+(mr>=0?'ok':'bad'))}
+ </div>`}
+
+function calc(){
+ const custo=n('custo');
+ if(custo<=0){$('res').innerHTML='<div class="card err">Informe o custo do produto.</div>';return}
+ const sp=SP_TIERS;const F1=$('fml').value!==''?n('fml'):cfg.mlf;
+ const flat=f=>[{min:0,max:Infinity,fix:f,extra:0}];
+ $('res').innerHTML=
+  channel({nome:'Mercado Livre Clássico',cls:'ml',custo,com:cfg.mlc,frete:F1,ads:cfg.mla,tiers:ML_TIERS})+
+  channel({nome:'Mercado Livre Premium',cls:'pr',custo,com:cfg.mlp,frete:F1,ads:cfg.mla,tiers:ML_TIERS})+
+  channel({nome:'Shopee',cls:'sp',custo,com:0,frete:$('fsp').value!==''?n('fsp'):cfg.spf,ads:cfg.spa,tiers:sp});
+}
+$('go').onclick=calc;
+$('limpar').onclick=()=>{['nome','custo','manual','fml','fsp'].forEach(i=>$(i).value='');$('res').innerHTML=''};
+['custo','margem','manual'].forEach(i=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter')calc()}));
+$('margem').oninput=()=>{cfg.margem=n('margem')};
+
+// taxas
+$('salvar').onclick=()=>{for(const k in DEF)if(k!=='margem'&&$(k))cfg[k]=n(k);cfg.margem=n('margem');
+ try{localStorage.setItem('castseg_cfg',JSON.stringify(cfg))}catch(e){}
+ $('msg').textContent='Taxas salvas.';if($('custo').value)calc()};
+$('reset').onclick=()=>{cfg={...DEF};try{localStorage.removeItem('castseg_cfg')}catch(e){}fill();$('msg').textContent='Valores padrão restaurados.'};
+
+// kit
+function row(nome='',q=1,c=''){
+ const tr=document.createElement('tr');
+ tr.innerHTML=`<td><input placeholder="Item" value="${nome.replace(/"/g,'&quot;')}"></td><td><input type="number" inputmode="numeric" min="1" value="${q}"></td><td><input type="number" inputmode="decimal" step="0.01" min="0" value="${c}"></td><td><button class="btn alt" style="padding:6px 10px;min-height:40px" aria-label="Remover">×</button></td>`;
+ tr.querySelectorAll('input').forEach(i=>i.oninput=tot);
+ tr.querySelector('button').onclick=()=>{tr.remove();tot()};
+ $('kitrows').appendChild(tr)}
+function tot(){let t=0;$('kitrows').querySelectorAll('tr').forEach(r=>{const i=r.querySelectorAll('input');t+=(parseFloat(i[1].value)||0)*(parseFloat(i[2].value)||0)});$('kittot').textContent=brl(t);return t}
+$('addrow').onclick=()=>row();
+$('exemplo').onclick=()=>{$('kitrows').innerHTML='';row('Câmera Hikvision',4,0);row('DVR 4 canais',1,0);row('Fonte 12V',1,0);row('Cabo e conectores',1,0);tot()};
+$('usar').onclick=()=>{const t=tot();$('custo').value=t.toFixed(2);$('nome').value=$('kitnome').value;
+ nav.querySelector('[data-go=calc]').click();if(t>0)calc()};
+row();row();
+</script>
+</body>
+</html>
